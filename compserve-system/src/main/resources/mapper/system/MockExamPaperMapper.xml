@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.MockExamPaperMapper">
+
+    <resultMap id="MockExamPaperResult" type="org.iflytek.system.domain.MockExamPaper">
+        <id     property="paperId"      column="paper_id"/>
+        <result property="title"        column="title"/>
+        <result property="description"  column="description"/>
+        <result property="categoryCode" column="category_code"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="duration"     column="duration"/>
+        <result property="totalScore"   column="total_score"/>
+        <result property="level"        column="level"/>
+        <result property="attendCount"  column="attend_count"/>
+        <result property="enabled"      column="enabled"/>
+        <result property="createTime"   column="create_time"/>
+        <result property="updateTime"   column="update_time"/>
+    </resultMap>
+
+    <select id="selectMockExamPaperList" resultMap="MockExamPaperResult">
+        select
+            paper_id,
+            title,
+            description,
+            category_code,
+            category_name,
+            duration,
+            total_score,
+            level,
+            attend_count,
+            enabled,
+            create_time,
+            update_time
+        from mock_exam_paper
+        <where>
+            <if test="title != null and title != ''">
+                and title like concat('%', #{title}, '%')
+            </if>
+            <if test="categoryCode != null and categoryCode != ''">
+                and category_code = #{categoryCode}
+            </if>
+            <if test="level != null and level != ''">
+                and level = #{level}
+            </if>
+            <if test="enabled != null">
+                and enabled = #{enabled}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectEnabledPapers" resultMap="MockExamPaperResult">
+        select
+            paper_id,
+            title,
+            description,
+            category_code,
+            category_name,
+            duration,
+            total_score,
+            level,
+            attend_count,
+            enabled,
+            create_time,
+            update_time
+        from mock_exam_paper
+        where enabled = 1
+        <if test="keyword != null and keyword != ''">
+            and (title like concat('%', #{keyword}, '%')
+                 or description like concat('%', #{keyword}, '%'))
+        </if>
+        order by create_time desc
+    </select>
+
+    <select id="selectMockExamPaperById" parameterType="long" resultMap="MockExamPaperResult">
+        select
+            paper_id,
+            title,
+            description,
+            category_code,
+            category_name,
+            duration,
+            total_score,
+            level,
+            attend_count,
+            enabled,
+            create_time,
+            update_time
+        from mock_exam_paper
+        where paper_id = #{paperId}
+    </select>
+
+    <insert id="insertMockExamPaper"
+            parameterType="org.iflytek.system.domain.MockExamPaper"
+            useGeneratedKeys="true"
+            keyProperty="paperId">
+        insert into mock_exam_paper (
+            title,
+            description,
+            category_code,
+            category_name,
+            duration,
+            total_score,
+            level,
+            attend_count,
+            enabled
+        ) values (
+            #{title},
+            #{description},
+            #{categoryCode},
+            #{categoryName},
+            #{duration},
+            #{totalScore},
+            #{level},
+            #{attendCount},
+            #{enabled}
+        )
+    </insert>
+
+    <update id="updateMockExamPaper"
+            parameterType="org.iflytek.system.domain.MockExamPaper">
+        update mock_exam_paper
+        <set>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="categoryCode != null">category_code = #{categoryCode},</if>
+            <if test="categoryName != null">category_name = #{categoryName},</if>
+            <if test="duration != null">duration = #{duration},</if>
+            <if test="totalScore != null">total_score = #{totalScore},</if>
+            <if test="level != null">level = #{level},</if>
+            <if test="attendCount != null">attend_count = #{attendCount},</if>
+            <if test="enabled != null">enabled = #{enabled},</if>
+        </set>
+        where paper_id = #{paperId}
+    </update>
+
+    <delete id="deleteMockExamPaperById" parameterType="long">
+        delete from mock_exam_paper where paper_id = #{paperId}
+    </delete>
+
+</mapper>
+

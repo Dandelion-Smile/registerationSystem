@@ -1,0 +1,53 @@
+services:
+  compserve-admin:
+    container_name: ${BACKEND_CONTAINER_NAME:-compserve-admin}
+    image: ${BACKEND_IMAGE:-compserve-admin:latest}
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.backend
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      RUOYI_PROFILE: ${RUOYI_PROFILE:-/data/uploadPath}
+      SPRING_DATASOURCE_DRUID_MASTER_URL: ${DB_URL}
+      SPRING_DATASOURCE_DRUID_MASTER_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_DRUID_MASTER_PASSWORD: ${DB_PASSWORD}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_ACCESSKEY: ${MINIO_ACCESSKEY}
+      MINIO_SECRETKEY: ${MINIO_SECRETKEY}
+      MINIO_BUCKETNAME: ${MINIO_BUCKETNAME:-compserve}
+      MINIO_REGION: ${MINIO_REGION:-us-east-1}
+      MINIO_USEHTTPS: ${MINIO_USEHTTPS:-false}
+      PREVIEW_ALLOWED_HOSTS: ${PREVIEW_ALLOWED_HOSTS:-117.72.113.94:9000}
+      ONLYOFFICE_URL: ${ONLYOFFICE_URL}
+      ONLYOFFICE_PUBLIC_BASE_URL: ${ONLYOFFICE_PUBLIC_BASE_URL:-}
+      JAVA_OPTS: "${JAVA_OPTS:--Xms512m -Xmx1024m}"
+    volumes:
+      - ${BACKEND_UPLOAD_DIR:-/opt/compserve/uploadPath}:${RUOYI_PROFILE:-/data/uploadPath}
+      - ${BACKEND_LOG_DIR:-/opt/compserve/logs}:/app/logs
+    expose:
+      - "8080"
+    networks:
+      - compserve-net
+
+  compserve-ui:
+    container_name: ${FRONTEND_CONTAINER_NAME:-compserve-ui}
+    image: ${FRONTEND_IMAGE:-compserve-ui:latest}
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.frontend
+      args:
+        VITE_APP_BASE_API: ${VITE_APP_BASE_API:-/prod-api}
+        VITE_APP_ONLYOFFICE_API: ${VITE_APP_ONLYOFFICE_API:-http://117.72.79.75:8080/web-apps/apps/api/documents/api.js}
+        VITE_APP_MINIO_URL: ${VITE_APP_MINIO_URL:-http://117.72.113.94:9001}
+    restart: unless-stopped
+    depends_on:
+      - compserve-admin
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    networks:
+      - compserve-net
+
+networks:
+  compserve-net:
+    driver: bridge

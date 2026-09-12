@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.PracticeRecordMapper">
+
+    <resultMap id="PracticeRecordResult" type="org.iflytek.system.domain.PracticeRecord">
+        <id     property="id"            column="id"/>
+        <result property="userId"        column="user_id"/>
+        <result property="questionId"    column="question_id"/>
+        <result property="type"          column="type"/>
+        <result property="category"      column="category"/>
+        <result property="questionTitle" column="question_title"/>
+        <result property="userAnswer"    column="user_answer"/>
+        <result property="correctAnswer" column="correct_answer"/>
+        <result property="correct"       column="correct"/>
+        <result property="score"         column="score"/>
+        <result property="totalScore"    column="total_score"/>
+        <result property="createTime"    column="create_time"/>
+    </resultMap>
+
+    <insert id="insertPracticeRecord"
+            parameterType="org.iflytek.system.domain.PracticeRecord"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        insert into practice_record (
+            user_id,
+            question_id,
+            type,
+            category,
+            question_title,
+            user_answer,
+            correct_answer,
+            correct,
+            score,
+            total_score,
+            create_time
+        ) values (
+            #{userId},
+            #{questionId},
+            #{type},
+            #{category},
+            #{questionTitle},
+            #{userAnswer},
+            #{correctAnswer},
+            #{correct},
+            #{score},
+            #{totalScore},
+            now()
+        )
+    </insert>
+
+    <select id="selectPracticeRecordListByUserId" parameterType="long" resultMap="PracticeRecordResult">
+        select
+            id,
+            user_id,
+            question_id,
+            type,
+            category,
+            question_title,
+            user_answer,
+            correct_answer,
+            correct,
+            score,
+            total_score,
+            create_time
+        from practice_record
+        where user_id = #{userId}
+        order by create_time desc
+    </select>
+
+</mapper>
+

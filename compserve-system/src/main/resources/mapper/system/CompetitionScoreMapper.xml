@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.CompetitionScoreMapper">
+
+    <resultMap id="ScoreResult" type="org.iflytek.system.domain.CompetitionScore">
+        <id     property="scoreId"         column="score_id"/>
+        <result property="participationId" column="participation_id"/>
+        <result property="reviewerId"      column="reviewer_id"/>
+        <result property="reviewerName"    column="reviewer_name"/>
+        <result property="score"           column="score"/>
+        <result property="comment"         column="comment"/>
+        <result property="scoreTime"       column="score_time"/>
+    </resultMap>
+
+    <select id="selectById" parameterType="long" resultMap="ScoreResult">
+        select score_id,
+               participation_id,
+               reviewer_id,
+               reviewer_name,
+               score,
+               comment,
+               score_time
+        from competition_score
+        where score_id = #{scoreId}
+    </select>
+
+    <select id="selectByParticipationId" parameterType="long" resultMap="ScoreResult">
+        select score_id,
+               participation_id,
+               reviewer_id,
+               reviewer_name,
+               score,
+               comment,
+               score_time
+        from competition_score
+        where participation_id = #{participationId}
+        order by score_time desc
+    </select>
+
+    <insert id="insertScore" parameterType="org.iflytek.system.domain.CompetitionScore"
+            useGeneratedKeys="true" keyProperty="scoreId">
+        insert into competition_score (participation_id, reviewer_id, reviewer_name, score, comment, score_time)
+        values (#{participationId}, #{reviewerId}, #{reviewerName}, #{score}, #{comment}, #{scoreTime})
+    </insert>
+
+    <update id="updateScore" parameterType="org.iflytek.system.domain.CompetitionScore">
+        update competition_score
+        set score = #{score},
+            comment = #{comment},
+            score_time = #{scoreTime}
+        where score_id = #{scoreId}
+    </update>
+
+    <delete id="deleteById" parameterType="long">
+        delete from competition_score
+        where score_id = #{scoreId}
+    </delete>
+
+    <select id="selectAll" resultMap="ScoreResult">
+        select score_id,
+               participation_id,
+               reviewer_id,
+               reviewer_name,
+               score,
+               comment,
+               score_time
+        from competition_score
+        order by score_time desc
+    </select>
+
+</mapper>

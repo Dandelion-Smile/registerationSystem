@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.TeacherTeamMapper">
+
+    <resultMap id="TeacherTeamResult" type="org.iflytek.system.domain.TeacherTeam">
+        <id property="id" column="id"/>
+        <result property="userName" column="user_name"/>
+        <result property="teacherName" column="teacher_name"/>
+        <result property="sex" column="sex"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="workUnit" column="work_unit"/>
+        <result property="title" column="title"/>
+        <result property="position" column="position"/>
+        <result property="politicalStatus" column="political_status"/>
+        <result property="birthDate" column="birth_date"/>
+        <result property="teamId" column="team_id"/>
+    </resultMap>
+
+    <select id="selectBaseTeacherByPhone" parameterType="string" resultMap="TeacherTeamResult">
+        select id, user_name, teacher_name, sex, phone, email, work_unit, title, position, political_status, birth_date, team_id
+        from tb_teacher_team
+        where phone = #{phone} and team_id is null
+        limit 1
+    </select>
+
+    <select id="selectBaseTeachersByPhone" parameterType="string" resultMap="TeacherTeamResult">
+        select id, user_name, teacher_name, sex, phone, email, work_unit, title, position, political_status, birth_date, team_id
+        from tb_teacher_team
+        where team_id is null
+          and phone = #{phone}
+        order by id asc
+    </select>
+
+    <select id="selectBaseTeacherByUserName" parameterType="string" resultMap="TeacherTeamResult">
+        select id, user_name, teacher_name, sex, phone, email, work_unit, title, position, political_status, birth_date, team_id
+        from tb_teacher_team
+        where user_name = #{userName} and team_id is null
+        limit 1
+    </select>
+
+    <select id="selectBaseTeachersByUserName" parameterType="string" resultMap="TeacherTeamResult">
+        select id, user_name, teacher_name, sex, phone, email, work_unit, title, position, political_status, birth_date, team_id
+        from tb_teacher_team
+        where team_id is null
+          and user_name = #{userName}
+        order by id asc
+    </select>
+
+    <select id="selectBaseTeachersByName" parameterType="string" resultMap="TeacherTeamResult">
+        select id, user_name, teacher_name, sex, phone, email, work_unit, title, position, political_status, birth_date, team_id
+        from tb_teacher_team
+        where team_id is null
+          and teacher_name = #{teacherName}
+        order by id asc
+    </select>
+
+    <select id="selectBaseTeachersByIds" resultMap="TeacherTeamResult">
+        select id, user_name, teacher_name, sex, phone, email, work_unit, title, position, political_status, birth_date, team_id
+        from tb_teacher_team
+        where team_id is null
+          and id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        order by id asc
+    </select>
+
+    <select id="selectBaseTeacherById" parameterType="long" resultMap="TeacherTeamResult">
+        select id, user_name, teacher_name, sex, phone, email, work_unit, title, position, political_status, birth_date, team_id
+        from tb_teacher_team
+        where id = #{id}
+          and team_id is null
+        limit 1
+    </select>
+
+    <insert id="insertBaseTeacher" parameterType="org.iflytek.system.domain.TeacherTeam">
+        insert into tb_teacher_team(user_name, teacher_name, sex, phone, email, work_unit, title, position, political_status, birth_date, team_id)
+        values(#{userName}, #{teacherName}, #{sex}, #{phone}, #{email}, #{workUnit}, #{title}, #{position}, #{politicalStatus}, #{birthDate}, null)
+    </insert>
+
+    <update id="updateBaseTeacherByPhone" parameterType="org.iflytek.system.domain.TeacherTeam">
+        update tb_teacher_team
+        set user_name = #{userName},
+            teacher_name = #{teacherName},
+            sex = #{sex},
+            email = #{email},
+            work_unit = #{workUnit},
+            title = #{title},
+            position = #{position},
+            political_status = #{politicalStatus},
+            birth_date = #{birthDate}
+        where phone = #{phone} and team_id is null
+    </update>
+
+    <update id="updateBaseTeacherById" parameterType="org.iflytek.system.domain.TeacherTeam">
+        update tb_teacher_team
+        set user_name = #{userName},
+            teacher_name = #{teacherName},
+            sex = #{sex},
+            phone = #{phone},
+            email = #{email},
+            work_unit = #{workUnit},
+            title = #{title},
+            position = #{position},
+            political_status = #{politicalStatus},
+            birth_date = #{birthDate}
+        where id = #{id} and team_id is null
+    </update>
+
+    <delete id="deleteBaseTeacherByPhone" parameterType="string">
+        delete from tb_teacher_team where phone = #{phone} and team_id is null
+    </delete>
+
+    <delete id="deleteByPhone" parameterType="string">
+        delete from tb_teacher_team where phone = #{phone}
+    </delete>
+</mapper>

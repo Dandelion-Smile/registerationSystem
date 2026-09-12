@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.MockExamPaperQuestionMapper">
+
+    <resultMap id="MockExamPaperQuestionResult" type="org.iflytek.system.domain.MockExamPaperQuestion">
+        <id     property="id"        column="id"/>
+        <result property="paperId"   column="paper_id"/>
+        <result property="questionId" column="question_id"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="score"     column="score"/>
+    </resultMap>
+
+    <select id="selectByPaperId" parameterType="long" resultMap="MockExamPaperQuestionResult">
+        select
+            id,
+            paper_id,
+            question_id,
+            sort_order,
+            score
+        from mock_exam_paper_question
+        where paper_id = #{paperId}
+        order by sort_order asc, id asc
+    </select>
+
+    <insert id="insertMockExamPaperQuestion"
+            parameterType="org.iflytek.system.domain.MockExamPaperQuestion"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        insert into mock_exam_paper_question (
+            paper_id,
+            question_id,
+            sort_order,
+            score
+        ) values (
+            #{paperId},
+            #{questionId},
+            #{sortOrder},
+            #{score}
+        )
+    </insert>
+
+    <delete id="deleteByPaperId" parameterType="long">
+        delete from mock_exam_paper_question where paper_id = #{paperId}
+    </delete>
+
+</mapper>
+

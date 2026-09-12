@@ -1,0 +1,35 @@
+FROM maven:3.9.9-eclipse-temurin-17 AS builder
+WORKDIR /build
+
+COPY pom.xml ./
+COPY compserve-admin/pom.xml compserve-admin/pom.xml
+COPY compserve-common/pom.xml compserve-common/pom.xml
+COPY compserve-framework/pom.xml compserve-framework/pom.xml
+COPY compserve-generator/pom.xml compserve-generator/pom.xml
+COPY compserve-quartz/pom.xml compserve-quartz/pom.xml
+COPY compserve-system/pom.xml compserve-system/pom.xml
+
+COPY compserve-admin/src compserve-admin/src
+COPY compserve-common/src compserve-common/src
+COPY compserve-framework/src compserve-framework/src
+COPY compserve-generator/src compserve-generator/src
+COPY compserve-quartz/src compserve-quartz/src
+COPY compserve-system/src compserve-system/src
+
+RUN mvn -pl compserve-admin -am clean package -DskipTests
+
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+
+ENV TZ=Asia/Shanghai
+ENV JAVA_OPTS="-Xms512m -Xmx1024m"
+ENV RUOYI_PROFILE=/data/uploadPath
+
+RUN mkdir -p /data/uploadPath /app/logs
+
+COPY --from=builder /build/compserve-admin/target/compserve-admin.jar /app/app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+

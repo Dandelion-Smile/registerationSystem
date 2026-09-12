@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.CompetitionMapper">
+
+    <resultMap id="CompetitionResult" type="org.iflytek.system.domain.Competition">
+        <id     property="competitionId"    column="competition_id"/>
+        <result property="competitionName"  column="competition_name"/>
+        <result property="description"      column="description"/>
+        <result property="competitionType"  column="competition_type"/>
+        <result property="competitionLink"  column="competition_link"/>
+        <result property="bannerImage"      column="banner_image"/>
+        <result property="announcement"     column="announcement"/>
+        <result property="learningLink"     column="learning_link"/>
+        <result property="learningImage"    column="learning_image"/>
+        <result property="learningDescription" column="learning_description"/>
+        <result property="learningCount"    column="learning_count"/>
+        <result property="registerStartTime" column="register_start_time"/>
+        <result property="registerEndTime"  column="register_end_time"/>
+        <result property="createTime"       column="create_time"/>
+        <result property="updateTime"       column="update_time"/>
+        <result property="teamCount"        column="team_count"/>
+    </resultMap>
+
+    <sql id="selectCompetitionVo">
+        select competition_id,
+               competition_name,
+               description,
+               competition_type,
+               competition_link,
+               banner_image,
+               announcement,
+               learning_link,
+               learning_image,
+               learning_description,
+               learning_count,
+               register_start_time,
+               register_end_time,
+               create_time,
+               update_time
+        from competition
+    </sql>
+
+    <select id="selectCompetitionCountStats" resultType="map">
+        SELECT
+            COUNT(CASE WHEN register_start_time > NOW() THEN 1 END) AS not_started,
+            COUNT(CASE WHEN NOW() BETWEEN register_start_time AND register_end_time THEN 1 END) AS in_progress,
+            COUNT(CASE WHEN register_end_time &lt; NOW() THEN 1 END) AS ended
+        FROM competition
+    </select>
+
+    <select id="selectCompetitionList" parameterType="org.iflytek.system.domain.Competition" resultMap="CompetitionResult">
+        select
+            c.competition_id,
+            c.competition_name,
+            c.description,
+            c.competition_type,
+            c.competition_link,
+            c.banner_image,
+            c.announcement,
+            c.learning_link,
+            c.learning_image,
+            c.learning_description,
+            c.learning_count,
+            c.register_start_time,
+            c.register_end_time,
+            c.create_time,
+            c.update_time,
+            coalesce(tc.team_count, 0) as team_count
+        from competition c
+        left join (
+            select competition_id, count(distinct team_id) as team_count
+            from competition_register
+            where team_id is not null
+            group by competition_id
+        ) tc on tc.competition_id = c.competition_id
+        <where>
+            <if test="competitionName != null and competitionName != ''">
+                AND c.competition_name like concat('%', #{competitionName}, '%')
+            </if>
+            <if test="competitionType != null and competitionType != ''">
+                AND c.competition_type like concat('%', #{competitionType}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                <choose>
+                    <when test='status == "not_started"'> AND c.register_start_time &gt; NOW() </when>
+                    <when test='status == "in_progress"'> AND NOW() BETWEEN c.register_start_time AND c.register_end_time </when>
+                    <when test='status == "ended"'> AND c.register_end_time &lt; NOW() </when>
+                </choose>
+            </if>
+        </where>
+        order by c.create_time desc
+    </select>
+
+    <select id="selectCompetitionListByPage" resultMap="CompetitionResult">
+        <include refid="selectCompetitionVo"/>
+        order by create_time desc
+        limit #{offset}, #{limit}
+    </select>
+
+    <select id="selectDistinctCompetitionTypes" resultType="string">
+        select distinct competition_type
+        from competition
+        where competition_type is not null
+          and competition_type != ''
+        order by competition_type asc
+    </select>
+
+    <select id="selectCompetitionListByPageAndFilters" resultMap="CompetitionResult">
+        <include refid="selectCompetitionVo"/>
+        <where>
+            <if test="filters != null">
+                <if test="filters.keyword != null and filters.keyword != ''">
+                    AND (competition_name like concat('%', #{filters.keyword}, '%')
+                    OR description like concat('%', #{filters.keyword}, '%'))
+                </if>
+                <if test="filters.type != null and filters.type != ''">
+                    AND trim(competition_type) = trim(#{filters.type})
+                </if>
+                <if test="filters.level != null and filters.level != ''">
+                    <choose>
+                        <when test='filters.level == "national"'>
+                            AND (
+                                competition_name like concat('%', '全国', '%')
+                                OR competition_name like concat('%', '国家', '%')
+                                OR description like concat('%', '全国', '%')
+                                OR description like concat('%', '国家', '%')
+                                OR description like concat('%', '教育部', '%')
+                                OR description like concat('%', '部委', '%')
+                            )
+                        </when>
+                        <when test='filters.level == "provincial"'>
+                            AND (
+                                competition_name like concat('%', '省赛', '%')
+                                OR competition_name like concat('%', '市赛', '%')
+                                OR description like concat('%', '省赛', '%')
+                                OR description like concat('%', '市赛', '%')
+                                OR description like concat('%', '省级', '%')
+                                OR description like concat('%', '市级', '%')
+                                OR description like concat('%', '区域', '%')
+                            )
+                        </when>
+                        <when test='filters.level == "school"'>
+                            AND (
+                                competition_name like concat('%', '校赛', '%')
+                                OR description like concat('%', '校赛', '%')
+                                OR description like concat('%', '校级', '%')
+                            )
+                        </when>
+                    </choose>
+                </if>
+                <if test="filters.status != null and filters.status != ''">
+                    <choose>
+                        <when test='filters.status == "open"'>
+                            AND NOW() BETWEEN register_start_time AND register_end_time
+                        </when>
+                        <when test='filters.status == "closed"'>
+                            AND (NOW() &lt; register_start_time OR NOW() &gt; register_end_time)
+                        </when>
+                    </choose>
+                </if>
+                <if test="filters.participants != null and filters.participants != ''">
+                    <choose>
+                        <when test='filters.participants == "team"'>
+                            AND (
+                                competition_name like concat('%', '团队', '%')
+                                OR competition_name like concat('%', '组队', '%')
+                                OR competition_name like concat('%', '团体', '%')
+                                OR description like concat('%', '团队', '%')
+                                OR description like concat('%', '组队', '%')
+                                OR description like concat('%', '团体', '%')
+                            )
+                        </when>
+                        <when test='filters.participants == "single"'>
+                            AND (
+                                competition_name like concat('%', '个人', '%')
+                                OR description like concat('%', '个人', '%')
+                            )
+                        </when>
+                    </choose>
+                </if>
+            </if>
+        </where>
+        order by create_time desc
+        limit #{offset}, #{limit}
+    </select>
+
+    <select id="selectCompetitionById" parameterType="long" resultMap="CompetitionResult">
+        select c.*,
+               (select count(distinct t.team_id) from competition_register t where t.competition_id = c.competition_id and t.team_id is not null) as team_count
+        from competition c
+        where c.competition_id = #{competitionId}
+    </select>
+
+    <select id="selectCompetitionListWithFilters" resultMap="CompetitionResult">
+        <include refid="selectCompetitionVo"/>
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (competition_name like concat('%', #{keyword}, '%') OR description like concat('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null and status != ''">
+                <choose>
+                    <when test='status == "not_started"'> AND register_start_time &gt; NOW() </when>
+                    <when test='status == "in_progress"'> AND NOW() BETWEEN register_start_time AND register_end_time </when>
+                    <when test='status == "ended"'> AND register_end_time &lt; NOW() </when>
+                </choose>
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectTeamListByCompId" resultType="map">
+        SELECT
+        r.register_id,
+        r.team_id,
+        r.team_name,
+        r.team_members,
+        r.work_name,
+        r.teacher_name,
+        r.work_description,
+        r.register_time,
+        ROUND(COALESCE(AVG(s.score), 0), 2) as avg_score
+        FROM competition_register r
+        INNER JOIN (
+            SELECT
+                competition_id,
+                team_id,
+                COALESCE(
+                    MIN(CASE WHEN register_id = team_id THEN register_id END),
+                    MIN(register_id)
+                ) AS main_register_id
+            FROM competition_register
+            WHERE competition_id = #{competitionId}
+              AND team_id IS NOT NULL
+            GROUP BY competition_id, team_id
+        ) team_main
+            ON team_main.main_register_id = r.register_id
+        LEFT JOIN competition_score s ON r.register_id = s.participation_id
+        WHERE r.competition_id = #{competitionId} AND r.team_id IS NOT NULL
+        GROUP BY
+        r.register_id, r.team_id, r.team_name, r.team_members,
+        r.work_name, r.teacher_name, r.work_description, r.register_time
+        HAVING 1=1
+        <if test="minScore != null">
+            AND COALESCE(AVG(s.score), 0) &gt;= #{minScore}
+        </if>
+        <if test="maxScore != null">
+            AND COALESCE(AVG(s.score), 0) &lt;= #{maxScore}
+        </if>
+        ORDER BY
+        <choose>
+            <when test='sortType == "desc"'> COALESCE(AVG(s.score), 0) DESC </when>
+            <when test='sortType == "asc"'> COALESCE(AVG(s.score), 0) ASC </when>
+            <otherwise> r.register_time DESC, r.register_id DESC </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectScoresByParticipationId" resultType="map">
+        SELECT
+            reviewer_name,
+            score,
+            comment,
+            score_time
+        FROM competition_score
+        WHERE participation_id = #{participationId}
+        ORDER BY score_time DESC
+    </select>
+
+    <insert id="insertCompetition" parameterType="org.iflytek.system.domain.Competition" useGeneratedKeys="true" keyProperty="competitionId">
+        insert into competition (
+            competition_name, description, competition_type, competition_link,
+            banner_image, announcement, learning_link, learning_image, learning_description,register_start_time, register_end_time, create_time
+        ) values (
+                     #{competitionName}, #{description}, #{competitionType}, #{competitionLink},
+                     #{bannerImage}, #{announcement}, #{learningLink}, #{learningImage}, #{learningDescription},#{registerStartTime}, #{registerEndTime}, sysdate()
+                 )
+    </insert>
+
+    <update id="updateCompetition" parameterType="org.iflytek.system.domain.Competition">
+        update competition
+        <set>
+            <if test="competitionName != null and competitionName != ''">competition_name = #{competitionName},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="competitionType != null">competition_type = #{competitionType},</if>
+            <if test="competitionLink != null">competition_link = #{competitionLink},</if>
+            <if test="bannerImage != null">banner_image = #{bannerImage},</if>
+            <if test="announcement != null">announcement = #{announcement},</if>
+            <if test="learningLink != null">learning_link = #{learningLink},</if>
+            <if test="learningImage != null">learning_image = #{learningImage},</if>
+            <if test="learningDescription != null">learning_description = #{learningDescription},</if>
+            <if test="learningCount != null">learning_count = #{learningCount},</if>
+            <if test="registerStartTime != null">register_start_time = #{registerStartTime},</if>
+            <if test="registerEndTime != null">register_end_time = #{registerEndTime},</if>
+            update_time = sysdate()
+        </set>
+        where competition_id = #{competitionId}
+    </update>
+
+    <delete id="deleteCompetitionById" parameterType="long">
+        delete from competition where competition_id = #{competitionId}
+    </delete>
+
+    <select id="selectTeamDetailById" parameterType="Long" resultType="org.iflytek.system.domain.CompetitionRegister">
+        SELECT
+            r.register_id as registerId,
+            r.team_name as teamName,
+            r.team_members as teamMembers,
+            r.work_name as workName,            r.work_description as workDescription, r.teacher_name as teacherName,      r.register_time as registerTime,
+            (SELECT AVG(score) FROM competition_score WHERE participation_id = r.register_id) as avgScore
+        FROM competition_register r
+        WHERE r.register_id = #{registerId}
+    </select>
+
+</mapper>

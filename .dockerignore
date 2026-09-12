@@ -1,0 +1,9 @@
+.git
+.github
+.idea
+logs
+uploadPath
+**/target
+**/node_modules
+**/.DS_Store
+

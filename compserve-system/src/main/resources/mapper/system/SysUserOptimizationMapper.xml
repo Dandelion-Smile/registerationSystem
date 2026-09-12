@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.SysUserOptimizationMapper">
+    <resultMap type="SysUserOptimization" id="SysUserOptimizationResult">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="optimizationCount" column="optimization_count" />
+        <result property="successCount" column="success_count" />
+        <result property="totalDuration" column="total_duration" />
+        <result property="lastOptimizationTime" column="last_optimization_time" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <select id="selectByUserId" parameterType="Long" resultMap="SysUserOptimizationResult">
+        select id, user_id, optimization_count, success_count, total_duration, last_optimization_time, create_time, update_time
+        from sys_user_optimization
+        where user_id = #{userId}
+    </select>
+
+    <insert id="insert" parameterType="SysUserOptimization" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_user_optimization(user_id, optimization_count, success_count, total_duration, last_optimization_time)
+        values(#{userId}, #{optimizationCount}, #{successCount}, #{totalDuration}, #{lastOptimizationTime})
+    </insert>
+
+    <update id="update" parameterType="SysUserOptimization">
+        update sys_user_optimization
+        set optimization_count = #{optimizationCount},
+            success_count = #{successCount},
+            total_duration = #{totalDuration},
+            last_optimization_time = #{lastOptimizationTime}
+        where user_id = #{userId}
+    </update>
+</mapper>

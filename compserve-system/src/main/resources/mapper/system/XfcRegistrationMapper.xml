@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.XfcRegistrationMapper">
+    <select id="selectCurrentDraft" resultType="java.util.HashMap">
+        select id, registration_no as registrationNo, captain_user_id as captainUserId,
+               track_code as trackCode, team_name as teamName, work_title as workTitle,
+               work_summary as workSummary, statement_truth as statementTruth,
+               statement_eligibility as statementEligibility, statement_copyright as statementCopyright,
+               status, submitted_at as submittedAt, created_at as createdAt, updated_at as updatedAt
+        from xfc_2026_registration
+        where captain_user_id = #{captainUserId} and status = 'DRAFT'
+        order by updated_at desc, id desc limit 1
+    </select>
+
+    <insert id="insertRegistration" parameterType="java.util.Map" useGeneratedKeys="true" keyProperty="id">
+        insert into xfc_2026_registration (captain_user_id, track_code, team_name, work_title, work_summary,
+            statement_truth, statement_eligibility, statement_copyright, status)
+        values (#{captainUserId}, #{trackCode}, #{teamName}, #{workTitle}, #{workSummary},
+            #{statementTruth}, #{statementEligibility}, #{statementCopyright}, 'DRAFT')
+    </insert>
+
+    <update id="updateDraft" parameterType="java.util.Map">
+        update xfc_2026_registration
+        set track_code=#{trackCode}, team_name=#{teamName}, work_title=#{workTitle}, work_summary=#{workSummary},
+            statement_truth=#{statementTruth}, statement_eligibility=#{statementEligibility}, statement_copyright=#{statementCopyright}
+        where id=#{id} and captain_user_id=#{captainUserId} and status='DRAFT'
+    </update>
+
+    <select id="selectMembers" resultType="java.util.HashMap">
+        select id, role, user_id as userId, student_no as studentNo, name, college, major,
+               class_name as className, phone, sort_no as sortNo
+        from xfc_2026_member where registration_id=#{registrationId} order by sort_no
+    </select>
+
+    <select id="selectAdvisors" resultType="java.util.HashMap">
+        select id, name, organization, title, phone, email, sort_no as sortNo
+        from xfc_2026_advisor where registration_id=#{registrationId} order by sort_no
+    </select>
+
+    <delete id="deleteMembers">delete from xfc_2026_member where registration_id=#{registrationId}</delete>
+    <delete id="deleteAdvisors">delete from xfc_2026_advisor where registration_id=#{registrationId}</delete>
+
+    <insert id="insertMember" parameterType="java.util.Map">
+        insert into xfc_2026_member (registration_id, role, user_id, student_no, name, college, major, class_name, phone, sort_no)
+        values (#{registrationId}, #{role}, #{userId}, #{studentNo}, #{name}, #{college}, #{major}, #{className}, #{phone}, #{sortNo})
+    </insert>
+
+    <insert id="insertAdvisor" parameterType="java.util.Map">
+        insert into xfc_2026_advisor (registration_id, name, organization, title, phone, email, sort_no)
+        values (#{registrationId}, #{name}, #{organization}, #{title}, #{phone}, #{email}, #{sortNo})
+    </insert>
+
+    <update id="updateRegistrationNo">
+        update xfc_2026_registration set registration_no=#{registrationNo}
+        where id=#{id} and registration_no is null
+    </update>
+
+    <select id="selectMaterials" resultType="java.util.HashMap">
+        select id, material_type as materialType, original_filename as originalFilename,
+               file_url as fileUrl, file_size as fileSize, content_type as contentType,
+               uploaded_at as uploadedAt
+        from xfc_2026_material where registration_id=#{registrationId}
+        order by field(material_type, 'APPLICATION', 'PRESENTATION', 'SUPPLEMENT')
+    </select>
+
+    <select id="selectMaterial" resultType="java.util.HashMap">
+        select id, material_type as materialType, original_filename as originalFilename,
+               file_url as fileUrl, file_size as fileSize, content_type as contentType,
+               uploaded_at as uploadedAt
+        from xfc_2026_material where registration_id=#{registrationId} and material_type=#{materialType}
+    </select>
+
+    <insert id="upsertMaterial" parameterType="java.util.Map">
+        insert into xfc_2026_material (registration_id, material_type, original_filename, file_url, file_size, content_type)
+        values (#{registrationId}, #{materialType}, #{originalFilename}, #{fileUrl}, #{fileSize}, #{contentType})
+        on duplicate key update original_filename=values(original_filename), file_url=values(file_url),
+            file_size=values(file_size), content_type=values(content_type), uploaded_at=current_timestamp
+    </insert>
+</mapper>

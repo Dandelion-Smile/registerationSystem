@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS `competition_review_assignment` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `competition_id` bigint NOT NULL COMMENT '赛事ID',
+  `participation_id` bigint NOT NULL COMMENT '参赛记录ID',
+  `team_id` bigint NOT NULL COMMENT '队伍ID',
+  `reviewer_id` bigint NOT NULL COMMENT '评审老师用户ID',
+  `reviewer_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '评审老师姓名',
+  `assignment_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'ASSIGNED' COMMENT '分配状态',
+  `assigned_by` bigint DEFAULT NULL COMMENT '分配操作人',
+  `assigned_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '分配时间',
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE KEY `uk_participation_reviewer` (`participation_id`,`reviewer_id`) USING BTREE,
+  KEY `idx_assignment_competition` (`competition_id`) USING BTREE,
+  KEY `idx_assignment_reviewer` (`reviewer_id`) USING BTREE,
+  KEY `idx_assignment_team` (`team_id`) USING BTREE,
+  CONSTRAINT `fk_assignment_competition` FOREIGN KEY (`competition_id`) REFERENCES `competition` (`competition_id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `fk_assignment_participation` FOREIGN KEY (`participation_id`) REFERENCES `competition_participation` (`participation_id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `fk_assignment_reviewer` FOREIGN KEY (`reviewer_id`) REFERENCES `sys_user` (`user_id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;

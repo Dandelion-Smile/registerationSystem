@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.CompetitionRegisterMapper">
+
+    <resultMap id="RegisterResult" type="org.iflytek.system.domain.CompetitionRegister">
+        <id     property="registerId"     column="register_id"/>
+        <result property="competitionId"  column="competition_id"/>
+        <result property="teamId"         column="team_id"/>
+        <result property="teamName"       column="team_name"/>
+        <result property="teamMembers"    column="team_members"/>
+        <result property="workName"       column="work_name"/>
+        <result property="workDescription" column="work_description"/>
+        <result property="teacherName"    column="teacher_name"/>
+        <result property="userId"         column="user_id"/>
+        <result property="registerTime"   column="register_time"/>
+    </resultMap>
+
+    <insert id="insertCompetitionRegister"
+            parameterType="org.iflytek.system.domain.CompetitionRegister"
+            useGeneratedKeys="true" keyProperty="registerId">
+        insert into competition_register (
+            competition_id, team_id, team_name, team_members, work_name, work_description, teacher_name, user_id, register_time
+        )
+        values (
+            #{competitionId}, #{teamId}, #{teamName}, #{teamMembers}, #{workName}, #{workDescription}, #{teacherName}, #{userId}, #{registerTime}
+        )
+    </insert>
+
+    <select id="selectById" parameterType="long" resultMap="RegisterResult">
+        select register_id,
+               competition_id,
+               team_id,
+               team_name,
+               team_members,
+               work_name,
+               work_description,
+               teacher_name,
+               user_id,
+               register_time
+        from competition_register
+        where register_id = #{registerId}
+    </select>
+
+    <select id="selectByCompetitionAndTeam" resultMap="RegisterResult">
+        select register_id,
+               competition_id,
+               team_id,
+               team_name,
+               team_members,
+               work_name,
+               work_description,
+               teacher_name,
+               user_id,
+               register_time
+        from competition_register
+        where competition_id = #{competitionId}
+          and team_id = #{teamId}
+        limit 1
+    </select>
+
+    <select id="selectByCompetitionAndUser" resultMap="RegisterResult">
+        select register_id,
+               competition_id,
+               team_id,
+               team_name,
+               team_members,
+               work_name,
+               work_description,
+               teacher_name,
+               user_id,
+               register_time
+        from competition_register
+        where competition_id = #{competitionId}
+          and user_id = #{userId}
+        limit 1
+    </select>
+
+    <select id="selectListByCompetitionAndUser" resultMap="RegisterResult">
+        select register_id,
+               competition_id,
+               team_id,
+               team_name,
+               team_members,
+               work_name,
+               work_description,
+               teacher_name,
+               user_id,
+               register_time
+        from competition_register
+        where competition_id = #{competitionId}
+          and user_id = #{userId}
+        order by register_time desc, register_id desc
+    </select>
+
+    <select id="selectListByUserAndCompetitionIds" resultMap="RegisterResult">
+        select register_id,
+               competition_id,
+               team_id,
+               team_name,
+               team_members,
+               work_name,
+               work_description,
+               teacher_name,
+               user_id,
+               register_time
+        from competition_register
+        where user_id = #{userId}
+          and competition_id in
+          <foreach collection="competitionIds" item="id" open="(" separator="," close=")">
+              #{id}
+          </foreach>
+        order by competition_id, register_time desc, register_id desc
+    </select>
+
+    <select id="selectByCompetitionAndUserAndTeam" resultMap="RegisterResult">
+        select register_id,
+               competition_id,
+               team_id,
+               team_name,
+               team_members,
+               work_name,
+               work_description,
+               teacher_name,
+               user_id,
+               register_time
+        from competition_register
+        where competition_id = #{competitionId}
+          and user_id = #{userId}
+          and team_id = #{teamId}
+        limit 1
+    </select>
+
+    <update id="updateCompetitionRegister" parameterType="org.iflytek.system.domain.CompetitionRegister">
+        update competition_register
+        set team_id = #{teamId},
+            team_name = #{teamName},
+            team_members = #{teamMembers},
+            work_name = #{workName},
+            work_description = #{workDescription},
+            teacher_name = #{teacherName}
+        where register_id = #{registerId}
+    </update>
+
+    <select id="selectRecentRegistrationsByUser" resultType="java.util.HashMap">
+        select 
+            cr.register_id as registerId,
+            cr.competition_id as competitionId,
+            cr.team_id as teamId,
+            cr.team_name as teamName,
+            cr.team_members as teamMembers,
+            cr.register_time as registerTime,
+            cr.work_name as workName,
+            c.competition_name as competitionName
+        from competition_register cr
+        left join competition c on cr.competition_id = c.competition_id
+        where cr.user_id = #{userId}
+        order by cr.register_time desc
+        limit #{limit}
+    </select>
+
+    <select id="selectRegistrationsByUserPage" resultType="java.util.HashMap">
+        select
+            cr.register_id as registerId,
+            cr.competition_id as competitionId,
+            cr.team_id as teamId,
+            cr.team_name as teamName,
+            cr.team_members as teamMembers,
+            cr.register_time as registerTime,
+            cr.work_name as workName,
+            c.competition_name as competitionName
+        from competition_register cr
+        left join competition c on cr.competition_id = c.competition_id
+        where cr.user_id = #{userId}
+          and (
+            cr.team_id is not null
+            or exists (
+              select 1
+              from competition_participation cp
+              where cp.participation_id = cr.register_id
+                and cp.submit_time is not null
+                and cp.ppt_path is not null
+                and cp.ppt_path != ''
+                and cp.pdf_path is not null
+                and cp.pdf_path != ''
+            )
+          )
+          and (
+            cr.team_id is null
+            or #{studentNo} is null
+            or JSON_SEARCH(cr.team_members, 'one', #{studentNo}, null, '$[*].studentNo') is not null
+          )
+        order by cr.register_time desc, cr.register_id desc
+        limit #{offset}, #{limit}
+    </select>
+
+    <select id="countRegistrationsByUser" resultType="long">
+        select count(1)
+        from competition_register cr
+        where cr.user_id = #{userId}
+          and (
+            cr.team_id is not null
+            or exists (
+              select 1
+              from competition_participation cp
+              where cp.participation_id = cr.register_id
+                and cp.submit_time is not null
+                and cp.ppt_path is not null
+                and cp.ppt_path != ''
+                and cp.pdf_path is not null
+                and cp.pdf_path != ''
+            )
+          )
+          and (
+            cr.team_id is null
+            or #{studentNo} is null
+            or JSON_SEARCH(cr.team_members, 'one', #{studentNo}, null, '$[*].studentNo') is not null
+          )
+    </select>
+
+    <select id="selectAllRegistrationsByUser" resultType="java.util.HashMap">
+        select
+            cr.register_id as registerId,
+            cr.competition_id as competitionId,
+            cr.team_id as teamId,
+            cr.team_name as teamName,
+            cr.team_members as teamMembers,
+            cr.register_time as registerTime,
+            cr.work_name as workName,
+            c.competition_name as competitionName
+        from competition_register cr
+        left join competition c on cr.competition_id = c.competition_id
+        where cr.user_id = #{userId}
+        order by cr.register_time desc, cr.register_id desc
+    </select>
+
+    <select id="selectSubmittedRegistrationsByUser" resultType="java.util.HashMap">
+        select
+            cr.register_id as registerId,
+            cr.competition_id as competitionId,
+            cr.team_id as teamId,
+            cr.team_name as teamName,
+            cr.team_members as teamMembers,
+            cr.register_time as registerTime,
+            cr.work_name as workName,
+            c.competition_name as competitionName
+        from competition_register cr
+        inner join competition_participation cp on cp.participation_id = cr.register_id
+        left join competition c on cr.competition_id = c.competition_id
+        where cr.user_id = #{userId}
+          and cp.submit_time is not null
+          and cp.ppt_path is not null
+          and cp.ppt_path != ''
+          and cp.pdf_path is not null
+          and cp.pdf_path != ''
+        order by cp.submit_time desc, cr.register_id desc
+        <if test="limit != null and limit > 0">
+            limit #{limit}
+        </if>
+    </select>
+
+    <select id="selectByCompetitionId" parameterType="long" resultMap="RegisterResult">
+        select register_id,
+               competition_id,
+               team_id,
+               team_name,
+               team_members,
+               work_name,
+               work_description,
+               teacher_name,
+               user_id,
+               register_time
+        from competition_register
+        where competition_id = #{competitionId}
+    </select>
+
+    <select id="selectByTeamId" parameterType="long" resultMap="RegisterResult">
+        select register_id,
+               competition_id,
+               team_id,
+               team_name,
+               team_members,
+               work_name,
+               work_description,
+               teacher_name,
+               user_id,
+               register_time
+        from competition_register
+        where team_id = #{teamId}
+    </select>
+
+    <select id="selectByIds" resultMap="RegisterResult">
+        select register_id,
+               competition_id,
+               team_id,
+               team_name,
+               team_members,
+               work_name,
+               work_description,
+               teacher_name,
+               user_id,
+               register_time
+        from competition_register
+        where register_id in
+        <foreach collection="registerIds" item="registerId" open="(" separator="," close=")">
+            #{registerId}
+        </foreach>
+    </select>
+
+    <delete id="deleteById" parameterType="long">
+        delete from competition_register where register_id = #{registerId}
+    </delete>
+
+    <update id="updateTeamMembersByTeamId">
+        update competition_register
+        set team_members = #{teamMembers}
+        where team_id = #{teamId}
+    </update>
+
+    <update id="updateTeamNameByTeamId">
+        update competition_register
+        set team_name = #{teamName}
+        where team_id = #{teamId}
+    </update>
+
+    <update id="updateTeamProfileByTeamId">
+        update competition_register
+        set work_name = #{workName},
+            work_description = #{workDescription},
+            teacher_name = #{teacherName}
+        where team_id = #{teamId}
+    </update>
+
+    <select id="selectAllTeams" resultMap="RegisterResult">
+        select distinct team_id, team_name, team_members, work_name, work_description, teacher_name, competition_id
+        from competition_register
+        where team_id is not null
+    </select>
+</mapper>

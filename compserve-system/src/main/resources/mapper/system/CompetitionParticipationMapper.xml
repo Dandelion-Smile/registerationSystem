@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.CompetitionParticipationMapper">
+
+    <resultMap id="ParticipationResult" type="org.iflytek.system.domain.CompetitionParticipation">
+        <id     property="participationId"    column="participation_id"/>
+        <result property="pptPath"            column="ppt_path"/>
+        <result property="pdfPath"            column="pdf_path"/>
+        <result property="submitTime"         column="submit_time"/>
+        <result property="finalScore"         column="final_score"/>
+        <result property="participationStatus" column="participation_status"/>
+    </resultMap>
+
+    <insert id="insertCompetitionParticipation"
+            parameterType="org.iflytek.system.domain.CompetitionParticipation">
+        insert into competition_participation
+        (participation_id, ppt_path, pdf_path, submit_time, final_score, participation_status)
+        values
+        (#{participationId}, #{pptPath}, #{pdfPath}, #{submitTime}, #{finalScore}, #{participationStatus})
+    </insert>
+
+    <update id="updateCompetitionParticipation"
+            parameterType="org.iflytek.system.domain.CompetitionParticipation">
+        update competition_participation
+        set ppt_path = #{pptPath},
+            pdf_path = #{pdfPath},
+            submit_time = #{submitTime},
+            final_score = #{finalScore},
+            participation_status = #{participationStatus}
+        where participation_id = #{participationId}
+    </update>
+
+    <select id="selectById" parameterType="long" resultMap="ParticipationResult">
+        select participation_id,
+               ppt_path,
+               pdf_path,
+               submit_time,
+               final_score,
+               participation_status
+        from competition_participation
+        where participation_id = #{participationId}
+    </select>
+
+    <select id="selectByIds" resultMap="ParticipationResult">
+        select participation_id,
+               ppt_path,
+               pdf_path,
+               submit_time,
+               final_score,
+               participation_status
+        from competition_participation
+        where participation_id in
+        <foreach collection="participationIds" item="participationId" open="(" separator="," close=")">
+            #{participationId}
+        </foreach>
+    </select>
+
+    <delete id="deleteById" parameterType="long">
+        delete from competition_participation where participation_id = #{participationId}
+    </delete>
+</mapper>
+

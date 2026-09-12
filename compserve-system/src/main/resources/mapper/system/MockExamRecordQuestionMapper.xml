@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.MockExamRecordQuestionMapper">
+
+    <resultMap id="MockExamRecordQuestionResult" type="org.iflytek.system.domain.MockExamRecordQuestion">
+        <id     property="id"          column="id"/>
+        <result property="recordId"    column="record_id"/>
+        <result property="questionId"  column="question_id"/>
+        <result property="userAnswer"  column="user_answer"/>
+        <result property="correctAnswer" column="correct_answer"/>
+        <result property="score"       column="score"/>
+        <result property="correct"     column="correct"/>
+    </resultMap>
+
+    <insert id="batchInsert">
+        insert into mock_exam_record_question (
+            record_id,
+            question_id,
+            user_answer,
+            correct_answer,
+            score,
+            correct
+        ) values
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.recordId},
+                #{item.questionId},
+                #{item.userAnswer},
+                #{item.correctAnswer},
+                #{item.score},
+                #{item.correct}
+            )
+        </foreach>
+    </insert>
+
+    <select id="selectByRecordId" parameterType="long" resultMap="MockExamRecordQuestionResult">
+        select
+            id,
+            record_id,
+            question_id,
+            user_answer,
+            correct_answer,
+            score,
+            correct
+        from mock_exam_record_question
+        where record_id = #{recordId}
+    </select>
+
+</mapper>
+

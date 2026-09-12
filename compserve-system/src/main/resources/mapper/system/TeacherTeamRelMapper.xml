@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.TeacherTeamRelMapper">
+
+    <resultMap id="TeacherTeamRelResult" type="org.iflytek.system.domain.TeacherTeamRel">
+        <id property="id" column="id"/>
+        <result property="teacherId" column="teacher_id"/>
+        <result property="teamId" column="team_id"/>
+    </resultMap>
+
+    <select id="selectByTeamId" parameterType="long" resultMap="TeacherTeamRelResult">
+        select id, teacher_id, team_id
+        from tb_teacher_team_rel
+        where team_id = #{teamId}
+        order by id asc
+    </select>
+
+    <select id="selectByTeamIds" resultMap="TeacherTeamRelResult">
+        select id, teacher_id, team_id
+        from tb_teacher_team_rel
+        where team_id in
+        <foreach collection="teamIds" item="teamId" open="(" separator="," close=")">
+            #{teamId}
+        </foreach>
+        order by team_id asc, id asc
+    </select>
+
+    <select id="selectByTeacherId" parameterType="long" resultMap="TeacherTeamRelResult">
+        select id, teacher_id, team_id
+        from tb_teacher_team_rel
+        where teacher_id = #{teacherId}
+        order by id asc
+    </select>
+
+    <select id="selectByTeacherIds" resultMap="TeacherTeamRelResult">
+        select id, teacher_id, team_id
+        from tb_teacher_team_rel
+        where teacher_id in
+        <foreach collection="teacherIds" item="teacherId" open="(" separator="," close=")">
+            #{teacherId}
+        </foreach>
+        order by teacher_id asc, id asc
+    </select>
+
+    <delete id="deleteByTeamId" parameterType="long">
+        delete from tb_teacher_team_rel where team_id = #{teamId}
+    </delete>
+
+    <delete id="deleteByTeacherId" parameterType="long">
+        delete from tb_teacher_team_rel where teacher_id = #{teacherId}
+    </delete>
+
+    <insert id="batchInsert">
+        insert into tb_teacher_team_rel (teacher_id, team_id)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.teacherId}, #{item.teamId})
+        </foreach>
+    </insert>
+</mapper>

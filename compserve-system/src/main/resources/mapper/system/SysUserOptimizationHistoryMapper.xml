@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.SysUserOptimizationHistoryMapper">
+    <resultMap type="SysUserOptimizationHistory" id="SysUserOptimizationHistoryResult">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="fileName" column="file_name" />
+        <result property="fileType" column="file_type" />
+        <result property="status" column="status" />
+        <result property="optimizationLevel" column="optimization_level" />
+        <result property="optimizationSpeed" column="optimization_speed" />
+        <result property="uploadTime" column="upload_time" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <select id="selectByUserId" parameterType="Long" resultMap="SysUserOptimizationHistoryResult">
+        select id, user_id, file_name, file_type, status, optimization_level, optimization_speed, upload_time, create_time, update_time
+        from sys_user_optimization_history
+        where user_id = #{userId}
+        order by upload_time desc
+        limit 20
+    </select>
+
+    <insert id="insert" parameterType="SysUserOptimizationHistory" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_user_optimization_history(user_id, file_name, file_type, status, optimization_level, optimization_speed, upload_time)
+        values(#{userId}, #{fileName}, #{fileType}, #{status}, #{optimizationLevel}, #{optimizationSpeed}, #{uploadTime})
+    </insert>
+</mapper>

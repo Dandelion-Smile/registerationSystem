@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.MockExamQuestionMapper">
+
+    <resultMap id="MockExamQuestionResult" type="org.iflytek.system.domain.MockExamQuestion">
+        <id     property="questionId"    column="question_id"/>
+        <result property="type"          column="type"/>
+        <result property="content"       column="content"/>
+        <result property="optionA"       column="option_a"/>
+        <result property="optionB"       column="option_b"/>
+        <result property="optionC"       column="option_c"/>
+        <result property="optionD"       column="option_d"/>
+        <result property="correctAnswer" column="correct_answer"/>
+        <result property="score"         column="score"/>
+        <result property="category"      column="category"/>
+        <result property="difficulty"    column="difficulty"/>
+        <result property="enabled"       column="enabled"/>
+        <result property="createTime"    column="create_time"/>
+        <result property="updateTime"    column="update_time"/>
+    </resultMap>
+
+    <!-- 列表查询，支持按题型、难度、分类、启用状态和关键词（content）筛选 -->
+    <select id="selectMockExamQuestionList" resultMap="MockExamQuestionResult">
+        select
+            question_id,
+            type,
+            content,
+            option_a,
+            option_b,
+            option_c,
+            option_d,
+            correct_answer,
+            score,
+            category,
+            difficulty,
+            enabled,
+            create_time,
+            update_time
+        from mock_exam_question
+        <where>
+            <if test="type != null and type != ''">
+                and type = #{type}
+            </if>
+            <if test="difficulty != null and difficulty != ''">
+                and difficulty = #{difficulty}
+            </if>
+            <if test="category != null and category != ''">
+                and category = #{category}
+            </if>
+            <if test="enabled != null">
+                and enabled = #{enabled}
+            </if>
+            <if test="content != null and content != ''">
+                and content like concat('%', #{content}, '%')
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectMockExamQuestionById" parameterType="long" resultMap="MockExamQuestionResult">
+        select
+            question_id,
+            type,
+            content,
+            option_a,
+            option_b,
+            option_c,
+            option_d,
+            correct_answer,
+            score,
+            category,
+            difficulty,
+            enabled,
+            create_time,
+            update_time
+        from mock_exam_question
+        where question_id = #{questionId}
+    </select>
+
+    <insert id="insertMockExamQuestion"
+            parameterType="org.iflytek.system.domain.MockExamQuestion"
+            useGeneratedKeys="true"
+            keyProperty="questionId">
+        insert into mock_exam_question (
+            type,
+            content,
+            option_a,
+            option_b,
+            option_c,
+            option_d,
+            correct_answer,
+            score,
+            category,
+            difficulty,
+            enabled
+        ) values (
+            #{type},
+            #{content},
+            #{optionA},
+            #{optionB},
+            #{optionC},
+            #{optionD},
+            #{correctAnswer},
+            #{score},
+            #{category},
+            #{difficulty},
+            #{enabled}
+        )
+    </insert>
+
+    <update id="updateMockExamQuestion"
+            parameterType="org.iflytek.system.domain.MockExamQuestion">
+        update mock_exam_question
+        <set>
+            <if test="type != null and type != ''">type = #{type},</if>
+            <if test="content != null and content != ''">content = #{content},</if>
+            <if test="optionA != null">option_a = #{optionA},</if>
+            <if test="optionB != null">option_b = #{optionB},</if>
+            <if test="optionC != null">option_c = #{optionC},</if>
+            <if test="optionD != null">option_d = #{optionD},</if>
+            <if test="correctAnswer != null and correctAnswer != ''">correct_answer = #{correctAnswer},</if>
+            <if test="score != null">score = #{score},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="difficulty != null">difficulty = #{difficulty},</if>
+            <if test="enabled != null">enabled = #{enabled},</if>
+        </set>
+        where question_id = #{questionId}
+    </update>
+
+    <delete id="deleteMockExamQuestionById" parameterType="long">
+        delete from mock_exam_question where question_id = #{questionId}
+    </delete>
+
+</mapper>
+

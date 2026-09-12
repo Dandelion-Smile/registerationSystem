@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.CompetitionReviewAssignmentMapper">
+
+    <resultMap id="CompetitionReviewAssignmentResult" type="org.iflytek.system.domain.CompetitionReviewAssignment">
+        <id property="id" column="id"/>
+        <result property="competitionId" column="competition_id"/>
+        <result property="participationId" column="participation_id"/>
+        <result property="teamId" column="team_id"/>
+        <result property="reviewerId" column="reviewer_id"/>
+        <result property="reviewerName" column="reviewer_name"/>
+        <result property="assignmentStatus" column="assignment_status"/>
+        <result property="assignedBy" column="assigned_by"/>
+        <result property="assignedTime" column="assigned_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectCompetitionReviewAssignmentColumns">
+        select id,
+               competition_id,
+               participation_id,
+               team_id,
+               reviewer_id,
+               reviewer_name,
+               assignment_status,
+               assigned_by,
+               assigned_time,
+               update_time
+        from competition_review_assignment
+    </sql>
+
+    <select id="selectById" parameterType="long" resultMap="CompetitionReviewAssignmentResult">
+        <include refid="selectCompetitionReviewAssignmentColumns"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectByCompetitionId" parameterType="long" resultMap="CompetitionReviewAssignmentResult">
+        <include refid="selectCompetitionReviewAssignmentColumns"/>
+        where competition_id = #{competitionId}
+        order by participation_id asc, reviewer_id asc
+    </select>
+
+    <select id="selectByParticipationId" parameterType="long" resultMap="CompetitionReviewAssignmentResult">
+        <include refid="selectCompetitionReviewAssignmentColumns"/>
+        where participation_id = #{participationId}
+        order by reviewer_id asc
+    </select>
+
+    <select id="selectByParticipationIds" resultMap="CompetitionReviewAssignmentResult">
+        <include refid="selectCompetitionReviewAssignmentColumns"/>
+        where participation_id in
+        <foreach collection="participationIds" item="participationId" open="(" separator="," close=")">
+            #{participationId}
+        </foreach>
+        order by participation_id asc, reviewer_id asc
+    </select>
+
+    <select id="selectByCompetitionAndParticipation" resultMap="CompetitionReviewAssignmentResult">
+        <include refid="selectCompetitionReviewAssignmentColumns"/>
+        where competition_id = #{competitionId}
+          and participation_id = #{participationId}
+        order by reviewer_id asc
+    </select>
+
+    <select id="selectByReviewerAndCompetition" resultMap="CompetitionReviewAssignmentResult">
+        <include refid="selectCompetitionReviewAssignmentColumns"/>
+        where reviewer_id = #{reviewerId}
+          and competition_id = #{competitionId}
+        order by participation_id asc
+    </select>
+
+    <select id="selectByParticipationAndReviewer" resultMap="CompetitionReviewAssignmentResult">
+        <include refid="selectCompetitionReviewAssignmentColumns"/>
+        where participation_id = #{participationId}
+          and reviewer_id = #{reviewerId}
+        limit 1
+    </select>
+
+    <insert id="insertAssignment" parameterType="org.iflytek.system.domain.CompetitionReviewAssignment"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into competition_review_assignment (
+            competition_id,
+            participation_id,
+            team_id,
+            reviewer_id,
+            reviewer_name,
+            assignment_status,
+            assigned_by,
+            assigned_time,
+            update_time
+        ) values (
+            #{competitionId},
+            #{participationId},
+            #{teamId},
+            #{reviewerId},
+            #{reviewerName},
+            #{assignmentStatus},
+            #{assignedBy},
+            #{assignedTime},
+            #{updateTime}
+        )
+    </insert>
+
+    <update id="updateAssignment" parameterType="org.iflytek.system.domain.CompetitionReviewAssignment">
+        update competition_review_assignment
+        set reviewer_name = #{reviewerName},
+            assignment_status = #{assignmentStatus},
+            assigned_by = #{assignedBy},
+            assigned_time = #{assignedTime},
+            update_time = #{updateTime}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="long">
+        delete from competition_review_assignment
+        where id = #{id}
+    </delete>
+
+    <delete id="deletePendingByCompetitionId" parameterType="long">
+        delete from competition_review_assignment
+        where competition_id = #{competitionId}
+          and assignment_status = 'ASSIGNED'
+    </delete>
+
+    <delete id="deletePendingByCompetitionAndReviewer">
+        delete from competition_review_assignment
+        where competition_id = #{competitionId}
+          and reviewer_id = #{reviewerId}
+          and assignment_status = 'ASSIGNED'
+    </delete>
+
+    <delete id="deletePendingByParticipationId" parameterType="long">
+        delete from competition_review_assignment
+        where participation_id = #{participationId}
+          and assignment_status = 'ASSIGNED'
+    </delete>
+</mapper>

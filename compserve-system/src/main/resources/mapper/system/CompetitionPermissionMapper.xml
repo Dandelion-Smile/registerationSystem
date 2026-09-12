@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.CompetitionPermissionMapper">
+
+    <resultMap id="PermissionResult" type="org.iflytek.system.domain.CompetitionPermission">
+        <result property="userId"         column="user_id"/>
+        <result property="competitionId"  column="competition_id"/>
+        <result property="permissionId"   column="permission_id"/>
+    </resultMap>
+
+    <select id="selectByUserAndCompetition" resultMap="PermissionResult">
+        select user_id, competition_id, permission_id
+        from competition_permissions
+        where user_id = #{userId} and competition_id = #{competitionId}
+    </select>
+
+    <select id="selectCompetitionIdsByUser" resultType="java.lang.Long">
+        select competition_id
+        from competition_permissions
+        where user_id = #{userId} and permission_id = 1
+    </select>
+
+    <insert id="insertPermission" parameterType="org.iflytek.system.domain.CompetitionPermission">
+        insert into competition_permissions (user_id, competition_id, permission_id)
+        values (#{userId}, #{competitionId}, #{permissionId})
+    </insert>
+
+    <update id="updatePermission" parameterType="org.iflytek.system.domain.CompetitionPermission">
+        update competition_permissions
+        set permission_id = #{permissionId}
+        where user_id = #{userId} and competition_id = #{competitionId}
+    </update>
+
+    <delete id="deletePermission">
+        delete from competition_permissions
+        where user_id = #{userId} and competition_id = #{competitionId}
+    </delete>
+
+    <select id="selectAll" resultMap="PermissionResult">
+        select user_id, competition_id, permission_id
+        from competition_permissions
+        order by competition_id, user_id
+    </select>
+
+    <select id="selectByCompetitionId" parameterType="long" resultMap="PermissionResult">
+        select user_id, competition_id, permission_id
+        from competition_permissions
+        where competition_id = #{competitionId}
+        order by user_id
+    </select>
+
+</mapper>

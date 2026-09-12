@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.iflytek.system.mapper.XfcPdfFileMapper">
+    <select id="selectNextVersion" resultType="int">
+        select coalesce(max(version), 0) + 1 from xfc_2026_pdf_file where registration_id=#{registrationId}
+    </select>
+    <insert id="insertPdfFile" parameterType="java.util.Map" useGeneratedKeys="true" keyProperty="id">
+        insert into xfc_2026_pdf_file (registration_id, version, file_path, generated_at)
+        values (#{registrationId}, #{version}, #{filePath}, now())
+    </insert>
+    <select id="selectPdfForCaptain" resultType="java.util.HashMap">
+        select p.id, p.registration_id as registrationId, p.version, p.file_path as filePath, p.generated_at as generatedAt
+        from xfc_2026_pdf_file p
+        inner join xfc_2026_registration r on r.id=p.registration_id
+        where p.id=#{id} and r.captain_user_id=#{captainUserId}
+    </select>
+</mapper>
