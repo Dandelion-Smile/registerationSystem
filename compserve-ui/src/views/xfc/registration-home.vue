@@ -176,11 +176,13 @@ async function preparePdf() {
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.target = '_blank'
-    anchor.rel = 'noopener'
+    anchor.download = `讯飞杯报名表_${generated.data.version}.pdf`
+    anchor.style.display = 'none'
+    document.body.appendChild(anchor)
     anchor.click()
-    window.setTimeout(() => URL.revokeObjectURL(url), 60000)
-    ElMessage.success(`报名表 PDF 已生成（版本 ${generated.data.version}）`)
+    anchor.remove()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+    ElMessage.success(`报名表 PDF 已生成并开始下载（版本 ${generated.data.version}）`)
   } catch (error) {
     ElMessage.error('报名表 PDF 生成失败，请稍后重试')
   }
