@@ -69,6 +69,12 @@ export const constantRoutes = [
     meta: { title: "讯飞杯报名登录" },
   },
   {
+    path: "/xfc",
+    component: () => import("@/views/xfc/competition-introduction.vue"),
+    hidden: true,
+    meta: { title: "讯飞杯 AI+创新应用大赛" },
+  },
+  {
     path: "/xfc/registration",
     component: () => import("@/views/xfc/registration-home.vue"),
     hidden: true,
@@ -94,7 +100,7 @@ export const constantRoutes = [
     component: Layout,
 
     // 讯飞杯为本项目唯一对外入口；旧竞赛平台登录仍保留在 /login。
-    redirect: "/xfc/login",
+    redirect: "/xfc",
     hidden: true,
 
     children: [

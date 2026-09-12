@@ -18,7 +18,8 @@ import {
 NProgress.configure({ showSpinner: false })
 
 const whiteList = ['/login', '/register', '/auth-redirect', '/bind', '/404', '/401']
-const isXfcRoute = (path) => typeof path === 'string' && path.startsWith('/xfc/')
+const isXfcRoute = (path) => typeof path === 'string' && (path === '/xfc' || path.startsWith('/xfc/'))
+const XFC_PAGE_TITLE = '河南工业大学第三届“讯飞杯”AI+创新应用大赛报名平台'
 
 const isWhiteList = (path) => {
   return whiteList.some(pattern => isPathMatch(pattern, path))
@@ -55,7 +56,8 @@ router.beforeEach((to, from, next) => {
 
   // 讯飞杯使用独立 Token，不进入旧平台的用户角色和路由流程。
   if (isXfcRoute(to.path)) {
-    if (to.path === '/xfc/login') {
+    document.title = XFC_PAGE_TITLE
+    if (to.path === '/xfc/login' || to.path === '/xfc') {
       next()
     } else if (getXfcToken()) {
       next()

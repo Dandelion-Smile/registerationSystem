@@ -1,6 +1,7 @@
 <template>
   <main class="xfc-login">
     <img class="art-layer" :src="loginArt" alt="" draggable="false">
+    <button class="back-to-intro" type="button" @click="router.push('/xfc')">← 返回比赛简介</button>
     <section class="login-card" aria-labelledby="login-title">
       <header>
         <h1 id="login-title">{{ isRegistering ? '学生注册' : '学生登录' }}</h1>
@@ -16,7 +17,6 @@
             size="large"
             @keyup.enter="submit"
           >
-            <template #prefix><i class="fa-regular fa-user"></i></template>
           </el-input>
         </el-form-item>
         <el-form-item prop="password">
@@ -29,7 +29,6 @@
             type="password"
             @keyup.enter="submit"
           >
-            <template #prefix><i class="fa-solid fa-lock"></i></template>
           </el-input>
         </el-form-item>
         <div class="form-options">
@@ -38,28 +37,24 @@
         </div>
         <el-button class="login-button" native-type="submit" :loading="submitting" type="primary">
           <span class="login-button-label">登 录</span>
-          <span class="login-button-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+          <span class="login-button-arrow" aria-hidden="true">→</span>
         </el-button>
       </el-form>
       <el-form v-else ref="registerFormRef" :model="registerForm" :rules="registerRules" class="login-form register-form" @submit.prevent="submitRegister">
         <el-form-item prop="username">
           <el-input v-model.trim="registerForm.username" autocomplete="username" placeholder="请输入12位学号" size="large">
-            <template #prefix><i class="fa-regular fa-user"></i></template>
           </el-input>
         </el-form-item>
         <el-form-item prop="password">
           <el-input v-model="registerForm.password" autocomplete="new-password" placeholder="请设置密码" show-password size="large" type="password">
-            <template #prefix><i class="fa-solid fa-lock"></i></template>
           </el-input>
         </el-form-item>
         <el-form-item prop="confirmPassword">
           <el-input v-model="registerForm.confirmPassword" autocomplete="new-password" placeholder="请再次输入密码" show-password size="large" type="password" @keyup.enter="submitRegister">
-            <template #prefix><i class="fa-solid fa-lock"></i></template>
           </el-input>
         </el-form-item>
         <el-form-item v-if="captchaEnabled" prop="code" class="captcha-item">
           <el-input v-model.trim="registerForm.code" autocomplete="off" placeholder="请输入验证码" size="large" @keyup.enter="submitRegister">
-            <template #prefix><i class="fa-solid fa-shield-halved"></i></template>
           </el-input>
           <button type="button" class="captcha-button" title="点击刷新验证码" @click="getCode">
             <img v-if="codeUrl" :src="codeUrl" alt="验证码">
@@ -71,7 +66,7 @@
         </el-form-item>
         <el-button class="login-button" native-type="submit" :loading="registering" type="primary">
           <span class="login-button-label">{{ registering ? '注册中' : '注 册' }}</span>
-          <span class="login-button-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+          <span class="login-button-arrow" aria-hidden="true">→</span>
         </el-button>
       </el-form>
     </section>
@@ -234,6 +229,27 @@ async function submitRegister() {
   object-position: center center;
   pointer-events: none;
   user-select: none;
+}
+
+.back-to-intro {
+  position: absolute;
+  z-index: 2;
+  top: 26px;
+  left: 34px;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 8px 20px rgba(53, 99, 173, 0.14);
+  color: #2356a0;
+  font: 700 14px/1 "Microsoft YaHei", "PingFang SC", sans-serif;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.back-to-intro:hover {
+  background: #fff;
+  transform: translateX(-2px);
 }
 
 .login-card {
@@ -468,6 +484,13 @@ async function submitRegister() {
 }
 
 @media (max-width: 800px) {
+  .back-to-intro {
+    top: 16px;
+    left: 16px;
+    padding: 9px 13px;
+    font-size: 13px;
+  }
+
   .art-layer {
     object-fit: cover;
     object-position: left 8%;

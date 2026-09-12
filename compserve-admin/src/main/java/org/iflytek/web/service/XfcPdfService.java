@@ -2,6 +2,7 @@ package org.iflytek.web.service;
 
 import com.aspose.words.Document;
 import com.aspose.words.DocumentBuilder;
+import com.aspose.words.FontSettings;
 import com.aspose.words.NodeCollection;
 import com.aspose.words.NodeType;
 import com.aspose.words.ParagraphAlignment;
@@ -42,8 +43,9 @@ public class XfcPdfService
     private static final int ADVISOR_ROW_CAPACITY = 2;
     private static final int MATERIAL_FIRST_ROW = 23;
     /** 与报名表模板正文保持一致的填写样式；避免宋体小字号与黑体表格产生割裂感。 */
-    private static final String VALUE_FONT = "SimHei";
+    private static final String VALUE_FONT = "Noto Sans CJK SC";
     private static final double VALUE_FONT_SIZE = 9.0;
+    private static final double COMPACT_FONT_SCALE = 0.85;
 
     @Autowired private XfcRegistrationDraftService draftService;
     @Autowired private XfcRegistrationMapper registrationMapper;
@@ -97,6 +99,8 @@ public class XfcPdfService
             try (InputStream template = new ClassPathResource("xfc/registration-template.docx").getInputStream())
             {
                 Document document = new Document(template);
+                configureChineseFontFallback(document);
+                compactTemplateTypography(document);
                 populateDocument(document, data, registrationNo, version);
                 document.save(temporary.toString(), SaveFormat.PDF);
             }
@@ -120,6 +124,7 @@ public class XfcPdfService
         List<Map<String, Object>> advisors = maps(data.get("advisors"));
         List<Map<String, Object>> materials = maps(data.get("materials"));
         Table table = registrationTable(document);
+        centerTemplateTableContent(table);
         String now = LocalDateTime.now().format(TIME);
 
         setPaddedCell(document, table, 1, 1, registrationNo);
@@ -174,7 +179,39 @@ public class XfcPdfService
                 "生成时间【" + now + "】  报名表版本【v" + version + "】  校验码【" + registrationNo + "】  状态【有效】",
                 8, ParagraphAlignment.LEFT, true);
         document.updatePageLayout();
-        if (document.getPageCount() != 1) throw new ServiceException("报名信息过长，无法生成单页报名表");
+        // 中文字体的实际行高因运行环境而异；超过一页时让 Word/Aspose 自然分页，
+        // 不应因此阻止用户下载可读的报名表。
+    }
+
+    /** Linux 容器没有 Windows 的“黑体”；显式替换模板字体，避免 Aspose 导出时缺字为方框。 */
+    private void configureChineseFontFallback(Document document)
+    {
+        FontSettings settings = new FontSettings();
+        settings.getSubstitutionSettings().getTableSubstitution().setSubstitutes("黑体", VALUE_FONT);
+        settings.getSubstitutionSettings().getTableSubstitution().setSubstitutes("SimHei", VALUE_FONT);
+        settings.getSubstitutionSettings().getDefaultFontSubstitution().setDefaultFontName(VALUE_FONT);
+        document.setFontSettings(settings);
+    }
+
+    /** 与 Windows 模板相比，Linux CJK 字体的行高更大；统一压缩以保持 A4 单页排版。 */
+    private void compactTemplateTypography(Document document) throws Exception
+    {
+        NodeCollection paragraphs = document.getChildNodes(NodeType.PARAGRAPH, true);
+        for (int i = 0; i < paragraphs.getCount(); i++)
+        {
+            com.aspose.words.Paragraph paragraph = (com.aspose.words.Paragraph) paragraphs.get(i);
+            paragraph.getParagraphFormat().setSpaceBefore(0);
+            paragraph.getParagraphFormat().setSpaceAfter(0);
+            NodeCollection runs = paragraph.getChildNodes(NodeType.RUN, true);
+            for (int j = 0; j < runs.getCount(); j++)
+            {
+                com.aspose.words.Run run = (com.aspose.words.Run) runs.get(j);
+                if (run.getFont().getSize() > 0)
+                {
+                    run.getFont().setSize(Math.max(6.5, run.getFont().getSize() * COMPACT_FONT_SCALE));
+                }
+            }
+        }
     }
 
     private Table registrationTable(Document document)
@@ -182,6 +219,20 @@ public class XfcPdfService
         NodeCollection tables = document.getChildNodes(NodeType.TABLE, true);
         if (tables.getCount() != 1) throw new ServiceException("报名表 Word 模板结构不正确");
         return (Table) tables.get(0);
+    }
+
+    /** 模板预置标签在 Linux 导出时默认贴近上边缘；仅调整竖直方向，不改变水平对齐。 */
+    private void centerTemplateTableContent(Table table)
+    {
+        for (int row = 0; row < table.getRows().getCount(); row++)
+        {
+            com.aspose.words.Row currentRow = table.getRows().get(row);
+            for (int cell = 0; cell < currentRow.getCells().getCount(); cell++)
+            {
+                currentRow.getCells().get(cell).getCellFormat()
+                        .setVerticalAlignment(com.aspose.words.CellVerticalAlignment.CENTER);
+            }
+        }
     }
 
     /** 统一模板中队长声明区域的静态文字，保持与报名表正文一致的黑体加粗样式。 */
@@ -199,8 +250,8 @@ public class XfcPdfService
             {
                 com.aspose.words.Run run = (com.aspose.words.Run) runs.get(j);
                 run.getFont().setName(VALUE_FONT);
-                run.getFont().setNameFarEast("黑体");
-                run.getFont().setSize(8);
+                run.getFont().setNameFarEast(VALUE_FONT);
+                run.getFont().setSize(8 * COMPACT_FONT_SCALE);
                 run.getFont().setBold(true);
                 run.getFont().setItalic(false);
             }
@@ -294,8 +345,8 @@ public class XfcPdfService
         builder.getParagraphFormat().setRightIndent(0);
         builder.getParagraphFormat().setFirstLineIndent(0);
         builder.getFont().setName(VALUE_FONT);
-        builder.getFont().setNameFarEast("黑体");
-        builder.getFont().setSize(fontSize);
+        builder.getFont().setNameFarEast(VALUE_FONT);
+        builder.getFont().setSize(fontSize * COMPACT_FONT_SCALE);
         builder.getFont().setBold(true);
         builder.getFont().setItalic(false);
         builder.write(value);

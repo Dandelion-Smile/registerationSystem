@@ -27,6 +27,12 @@ ENV RUOYI_PROFILE=/data/uploadPath
 
 RUN mkdir -p /data/uploadPath /app/logs
 
+# Aspose 导出中文 PDF 需要系统可发现的 CJK 字体；基础 JRE 镜像不包含中文字体。
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends fontconfig fonts-noto-cjk \
+    && fc-cache -f \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /build/compserve-admin/target/compserve-admin.jar /app/app.jar
 
 EXPOSE 8080

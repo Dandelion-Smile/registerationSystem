@@ -6,7 +6,7 @@ ARG VITE_APP_ONLYOFFICE_API=http://117.72.79.75:8080/web-apps/apps/api/documents
 ARG VITE_APP_MINIO_URL=http://117.72.79.75:9001
 
 COPY compserve-ui/package.json compserve-ui/package-lock.json ./
-RUN npm ci
+RUN npm config set registry https://registry.npmmirror.com && npm ci
 
 COPY compserve-ui/ ./
 

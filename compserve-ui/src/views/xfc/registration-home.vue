@@ -3,14 +3,14 @@
     <header class="topbar">
       <div class="event-identity"><div class="school-mark"><img src="@/assets/images/henu-seal.png" alt="河南工业大学校徽" /><span>河南工业大学<small>HENAN UNIVERSITY OF TECHNOLOGY</small></span></div><p>第三届 <strong>“讯飞杯”</strong> AI+创新应用大赛</p><h1>AI 赋能青春 · 创新点亮未来</h1></div>
       <div class="event-slogan">用 AI 连接无限可能<br><small>从校园走向更大的世界</small></div>
-      <div class="top-actions"><div class="save-state" :class="saveState"><i class="fa-solid fa-floppy-disk"></i>{{ saveText }}</div><el-button class="logout-button" text @click="logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> 退出登录</el-button></div>
+      <div class="top-actions"><div class="save-state" :class="saveState">{{ saveText }}</div><el-button class="logout-button" text @click="logout">退出登录</el-button></div>
     </header>
 
     <div class="layout">
       <aside class="progress-nav">
         <p>填写进度</p>
         <ol><li v-for="(step, index) in steps" :key="step.label" :class="{ active: activeStep === index }" @click="scrollToStep(index)"><span>{{ step.no }}</span>{{ step.label }}</li></ol>
-        <div class="deadline"><i class="fa-regular fa-clock"></i><span>报名截止<br /><strong>2026.10.15 24:00</strong></span></div>
+        <div class="deadline"><span>报名截止<br /><strong>2026.10.15 24:00</strong></span></div>
       </aside>
 
       <el-form class="registration-form" label-position="top">
@@ -32,7 +32,7 @@
               <div class="member-card-title"><span>队员 {{ index + 1 }}</span><el-button link type="danger" @click="removeMember(index)">移除</el-button></div>
               <div class="member-fields"><el-input v-model.trim="member.name" placeholder="姓名" /><el-input v-model.trim="member.studentNo" placeholder="学号" /><el-input v-model.trim="member.college" placeholder="学院" /><el-input v-model.trim="member.major" placeholder="专业" /><el-input v-model.trim="member.className" placeholder="班级" /><el-input v-model.trim="member.phone" placeholder="联系电话" /></div>
             </article>
-            <el-button class="add-button" plain :disabled="form.members.length >= MAX_MEMBERS" @click="addMember"><i class="fa-solid fa-plus"></i> 添加队员（最多 {{ MAX_MEMBERS }} 人）</el-button>
+            <el-button class="add-button" plain :disabled="form.members.length >= MAX_MEMBERS" @click="addMember">＋ 添加队员（最多 {{ MAX_MEMBERS }} 人）</el-button>
           </div>
         </section>
 
@@ -40,7 +40,7 @@
           <div class="section-heading"><span>03</span><div><h2>指导教师</h2><p>按需要填写指导教师信息，打印表中会按填写内容展示。</p></div></div>
           <div class="advisor-list">
             <article v-for="(advisor, index) in form.advisors" :key="index" class="advisor-card"><div class="member-card-title"><span>指导教师 {{ index + 1 }}</span><el-button link type="danger" @click="removeAdvisor(index)">移除</el-button></div><div class="advisor-fields"><el-input v-model.trim="advisor.name" placeholder="姓名" /><el-input v-model.trim="advisor.organization" placeholder="工作单位" /><el-input v-model.trim="advisor.title" placeholder="职称" /><el-input v-model.trim="advisor.phone" placeholder="联系电话" /><el-input v-model.trim="advisor.email" placeholder="电子邮箱" /></div></article>
-            <el-button class="add-button" plain :disabled="form.advisors.length >= MAX_ADVISORS" @click="addAdvisor"><i class="fa-solid fa-plus"></i> 添加指导教师（最多 {{ MAX_ADVISORS }} 人）</el-button>
+            <el-button class="add-button" plain :disabled="form.advisors.length >= MAX_ADVISORS" @click="addAdvisor">＋ 添加指导教师（最多 {{ MAX_ADVISORS }} 人）</el-button>
           </div>
         </section>
 
@@ -52,7 +52,7 @@
               <div class="material-kind"><b>{{ item.label }}</b><small>{{ item.hint }}</small></div><span class="file-name" :title="materialFor(item.type)?.originalFilename || ''">{{ materialFor(item.type)?.originalFilename || '暂未上传' }}</span><span>{{ materialFor(item.type) ? formatFileSize(materialFor(item.type).fileSize) : '—' }}</span><span>{{ materialFor(item.type) ? formatUploadTime(materialFor(item.type).uploadedAt) : '—' }}</span><span><em :class="['material-status', materialFor(item.type) ? 'uploaded' : item.required ? 'required' : 'optional']">{{ materialFor(item.type) ? '已上传' : item.required ? '必交' : '选交' }}</em></span><el-upload :show-file-list="false" :auto-upload="false" :accept="item.accept" :disabled="uploadingType === item.type" @change="file => selectMaterial(file, item)"><el-button link type="primary" :loading="uploadingType === item.type">{{ materialFor(item.type) ? '替换' : '上传' }}</el-button></el-upload>
             </div>
           </div>
-          <p class="material-note"><i class="fa-solid fa-circle-info"></i> 单个文件最大 100 MB。申报书仅支持 Word（.doc、.docx），PPT 演示资料仅支持 .ppt、.pptx；补充资料支持图片、文档、压缩包、视频和 PDF。</p>
+          <p class="material-note">提示：单个文件最大 100 MB。申报书仅支持 Word（.doc、.docx），PPT 演示资料仅支持 .ppt、.pptx；补充资料支持图片、文档、压缩包、视频和 PDF。</p>
         </section>
 
         <section :ref="setSectionRef(4)" class="form-section declaration">
